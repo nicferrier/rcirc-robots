@@ -1,0 +1,10 @@
+emacs is a great platform to build IRC robots on. 
+
+It has a very powerful text processing language with lots of useful
+tools and it's lisp, so abstractions are easy. Finally it has powerful
+async programming tools, which work well with chat environments.
+
+I hope that I can provide a simple and easy bot hosting environment
+with this.
+
+But this is a simple start.
