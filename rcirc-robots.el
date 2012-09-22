@@ -59,7 +59,7 @@ This is the building block of automatic responses."
 ;; Add the hook
 (add-hook
  'rcirc-print-hooks
- 'robot-german-time)
+ 'rcirc-robots-german-time)
 
 
 (provide 'rcirc-robots)
