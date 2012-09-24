@@ -40,26 +40,93 @@ This is the building block of automatic responses."
     (insert text)
     (rcirc-send-input)))
 
-(defun rcirc-robots-german-time (process sender response target text)
-  "If asked for 'germantime' response with the time in Berlin."
-  (when (string-match ".*\\germantime$" text)
-    (rcirc-text>channel
-     process target
-     (format
-      "the time in germany is %s"
-      (let ((tz (getenv "TZ")))
-        (unwind-protect
-             (progn
-               (setenv "TZ" "Europe/Berlin")
-               (format-time-string "%H:%M"))
-          (if tz
-              (setenv "TZ" tz)
-              (setenv "TZ" nil))))))))
+(defvar rcirc-robot--process nil
+  "Dynamic bound variable for robot send.")
+
+(defvar rcirc-robot--channel nil
+  "Dynamic bound variable for robot send")
+
+(defun rcirc-robot-send (text)
+  "Send TEXT to the current process and channel.
+
+Robots can use this to send text back to the channel and process
+that caused them to be invoked."
+  (rcirc-text>channel
+   rcirc-robot--process
+   rcirc-robot--channel
+   text))
+
+(require 'anaphora)
+
+(defun rcirc-robots-time (text place)
+  "Get the time of a place and report it."
+  (let ((places
+         '(("Germany" . "Europe/Berlin")
+           ("Berlin" . "Europe/Berlin")
+           ("Hamburg" . "Europe/Berlin")
+           ("England" . "Europe/London")
+           ("London" . "Europe/London")
+           ("Edinburgh" . "Europe/London")
+           ("Manchester" . "Europe/London")
+           ("Chicago" . "America/Chicago"))))
+    (acond
+      ((or
+        (equal place "?")
+        (equal place "help"))
+       (rcirc-robot-send
+        (format "places you can query for time %s"
+                (kvalist->keys places))))
+      ((assoc (capitalize place) places)
+       (rcirc-robot-send
+        (format
+         "the time in %s is %s"
+         (car it) ; the pair that assoc matched, the car's the place
+         (let ((tz (getenv "TZ")))
+           (unwind-protect
+                (progn
+                  (setenv "TZ" (cdr it))
+                  (format-time-string "%H:%M"))
+             (if tz
+                 (setenv "TZ" tz)
+                 (setenv "TZ" nil))))))))))
+
+(defvar rcirc-robots--list
+  (list
+   (list :name "timezone"
+         :version 1
+         :regex "time \\([A-Za-\]+\\)"
+         :function 'rcirc-robots-time))
+  "The list of robots.
+
+Each robot definition is a plist.  The plist has the following keys:
+
+ :name the name of the robot
+ :version the version of the robot definition, currently only version 1
+ :regex a regex that will be used to match input and fire the robot
+ :function will be called with the strings matched by the regex
+
+When the function is evaluated the function `rcirc-robot-send' is
+in scope to send text to the channel that caused the robot
+invocation.")
+
+(defun rcirc-robots--dispatcher (process sender response target text)
+  "Loop through `rcirc-robots--list' attempting to dispatch to robots."
+  (flet ((match-strings-all (&optional str)
+           (let ((m (if str (match-data str) (match-data))))
+             (loop for i
+                from 0 to (- (/ (length m) 2) 1)
+                collect (match-string i str)))))
+    (loop for robot in rcirc-robots--list
+       if (string-match (plist-get robot :regex) text)
+       do (let ((rcirc-robot--process process)
+                (rcirc-robot--channel target)
+                (matches (match-strings-all text)))
+            (apply (plist-get robot :function) matches)))))
 
 ;; Add the hook
 (add-hook
  'rcirc-print-hooks
- 'rcirc-robots-german-time)
+ 'rcirc-robots--dispatcher)
 
 
 (provide 'rcirc-robots)
