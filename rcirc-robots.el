@@ -83,7 +83,8 @@ that caused them to be invoked."
            ("Bangalore" . "Asia/Kolkata")
            ("Pune" . "Asia/Kolkata")
            ("India" . "Asia/Kolkata")
-           ("Delhi" . "Asia/Kolkata"))))
+           ("Delhi" . "Asia/Kolkata")
+           ("Agartala" . "Asia/Kolkata"))))
     (acond
       ((or
         (equal place "?")
