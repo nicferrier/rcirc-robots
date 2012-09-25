@@ -7,6 +7,7 @@
 ;; Version: 0.0.2
 ;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Created: 12th September 2012
+;; Package-Requires: ((kv "0.0.6"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -59,8 +60,6 @@ that caused them to be invoked."
    rcirc-robot--channel
    text))
 
-(require 'anaphora)
-
 (defun rcirc-robots-time (text place)
   "Get the time of a place and report it."
   (let ((places
@@ -106,11 +105,7 @@ that caused them to be invoked."
                  (setenv "TZ" nil))))))))))
 
 (defvar rcirc-robots--list
-  (list
-   (list :name "timezone"
-         :version 1
-         :regex "time \\([A-Za-z\ -]+\\)"
-         :function 'rcirc-robots-time))
+  (list)
   "The list of robots.
 
 Each robot definition is a plist.  The plist has the following keys:
@@ -147,7 +142,7 @@ invocation.")
 
 ;; More robots
 
-(defun rcirc-robots-maker ()
+(defun rcirc-robots-maker (&args)
   (rcirc-robot-send
    "I am [[https://github.com/nicferrier/rcirc-robots|a robot]]"))
 
@@ -176,26 +171,26 @@ invocation.")
              (elt adjectives (random (length adjectives)))
              (elt nouns (random (length nouns)))))))
 
+(add-to-list
+ 'rcirc-robots--list
+ (list :name "timezone"
+       :version 1
+       :regex "time \\([A-Za-z\ -]+\\)"
+       :function 'rcirc-robots-time))
 
 (add-to-list
  'rcirc-robots--list
- (list :name "maker"
-       :version 1
-       :regex "who are you?"
+ (list :name "maker" :version 1 :regex "who are you?"
        :function 'rcirc-robots-maker))
 
 (add-to-list
  'rcirc-robots--list
- (list :name "hammertime"
-       :version 1
-       :regex "hammertime[?!]*"
+ (list :name "hammertime" :version 1 :regex "hammertime[?!]*"
        :function 'rcirc-robots-hammertime))
 
 (add-to-list
  'rcirc-robots--list
- (list :name "insult"
-       :version 1
-       :regex "^insult \\([A-Za-z0-9-]+\\)"
+ (list :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9-]+\\)"
        :function 'rcirc-robots-insult))
 
 (provide 'rcirc-robots)
