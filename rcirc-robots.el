@@ -30,6 +30,7 @@
 
 
 (require 'rcirc)
+(require 'cl)
 
 (defun rcirc-text>channel (process channel text)
   "Send the TEXT to the CHANNEL attached to PROCESS.
@@ -120,6 +121,28 @@ When the function is evaluated the function `rcirc-robot-send' is
 in scope to send text to the channel that caused the robot
 invocation.")
 
+(defun* rcirc-robots-add-function (&key
+                                   name
+                                   version
+                                   regex
+                                   function)
+  "Add the specified robot to the list."
+  (condition-case err
+      (progn
+        (mapcar
+         (lambda (p)
+           (when (equal (plist-get p :name) name)
+             (error "%s exists" name)))
+         rcirc-robots--list)
+        ;; Install the bot
+        (add-to-list
+         'rcirc-robots--list
+         (list  :name name
+                :version version
+                :regex regex
+                :function function)))
+    (error nil)))
+
 ;;;###autoload
 (defun rcirc-robots--dispatcher (process sender response target text)
   "Loop through `rcirc-robots--list' attempting to dispatch to robots."
@@ -136,9 +159,9 @@ invocation.")
             (apply (plist-get robot :function) matches)))))
 
 ;; Add the hook
-(add-hook
- 'rcirc-print-hooks
- 'rcirc-robots--dispatcher)
+;(remove-hook
+; 'rcirc-print-hooks
+; 'rcirc-robots--dispatcher)
 
 
 ;; More robots
@@ -172,27 +195,21 @@ invocation.")
              (elt adjectives (random (length adjectives)))
              (elt nouns (random (length nouns)))))))
 
-(add-to-list
- 'rcirc-robots--list
- (list :name "timezone"
-       :version 1
-       :regex "time \\([A-Za-z\ -]+\\)"
-       :function 'rcirc-robots-time))
+(rcirc-robots-add-function
+ :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
+ :function 'rcirc-robots-time))
 
-(add-to-list
- 'rcirc-robots--list
- (list :name "maker" :version 1 :regex "who are you?"
-       :function 'rcirc-robots-maker))
+(rcirc-robots-add-function
+ :name "maker" :version 1 :regex "who are you?"
+ :function 'rcirc-robots-maker)
 
-(add-to-list
- 'rcirc-robots--list
- (list :name "hammertime" :version 1 :regex "hammertime[?!]*"
-       :function 'rcirc-robots-hammertime))
+(rcirc-robots-add-function
+ :name "hammertime" :version 1 :regex "hammertime[?!]*"
+ :function 'rcirc-robots-hammertime)
 
-(add-to-list
- 'rcirc-robots--list
- (list :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9-]+\\)"
-       :function 'rcirc-robots-insult))
+(rcirc-robots-add-function
+ :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9-]+\\)"
+ :function 'rcirc-robots-insult)
 
 (provide 'rcirc-robots)
 
