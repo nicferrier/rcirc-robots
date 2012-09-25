@@ -4,6 +4,9 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: comm
+;; Version: 0.0.2
+;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
+;; Created: 12th September 2012
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -109,6 +112,7 @@ When the function is evaluated the function `rcirc-robot-send' is
 in scope to send text to the channel that caused the robot
 invocation.")
 
+;;;###autoload
 (defun rcirc-robots--dispatcher (process sender response target text)
   "Loop through `rcirc-robots--list' attempting to dispatch to robots."
   (flet ((match-strings-all (&optional str)
@@ -128,6 +132,47 @@ invocation.")
  'rcirc-print-hooks
  'rcirc-robots--dispatcher)
 
+
+;; More robots
+
+(defun rcirc-robots-hammertime (&rest args)
+  (let ((quotes (list
+                 "READY THE ENORMOUS TROUSERS!"
+                 "YOU CAN'T TOUCH THIS!")))
+    (rcirc-robot-send (elt quotes (random (length quotes))))))
+
+(add-to-list
+ 'rcirc-robots--list
+ (list :name "hammertime"
+       :version 1
+       :regex "hammertime[?!]*"
+       :function 'rcirc-robots-hammertime))
+
+(defun rcirc-robots-insult (text user)
+  (let ((adjectives (list
+                    "stinky"
+                    "tiny-minded"
+                    "pea-brained"
+                    "heavily lidded"
+                    "muck minded"
+                    "flat footed"))
+        (nouns (list
+                "bog warbler"use-hard-newlines
+                "tin pincher"
+                "yeti"
+                "whoo-har")))
+    (rcirc-robot-send
+     (format "%s is a %s %s"
+             user
+             (elt adjectives (random (length adjectives)))
+             (elt nouns (random (length nouns)))))))
+
+(add-to-list
+ 'rcirc-robots--list
+ (list :name "insult"
+       :version 1
+       :regex "^insult \\([A-Za-z0-9-]+\\)"
+       :function 'rcirc-robots-insult))
 
 (provide 'rcirc-robots)
 
