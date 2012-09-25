@@ -7,6 +7,7 @@
 ;; Version: 0.0.2
 ;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Created: 12th September 2012
+;; Package-Requires: ((kv "0.0.6"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,6 +30,7 @@
 
 
 (require 'rcirc)
+(require 'cl)
 
 (defun rcirc-text>channel (process channel text)
   "Send the TEXT to the CHANNEL attached to PROCESS.
@@ -58,8 +60,6 @@ that caused them to be invoked."
    rcirc-robot--process
    rcirc-robot--channel
    text))
-
-(require 'anaphora)
 
 (defun rcirc-robots-time (text place)
   "Get the time of a place and report it."
@@ -120,11 +120,7 @@ that caused them to be invoked."
       (message (buffer-substring p (point-max))))))
 
 (defvar rcirc-robots--list
-  (list
-   (list :name "timezone"
-         :version 1
-         :regex "time \\([A-Za-z\ -]+\\)"
-         :function 'rcirc-robots-time))
+  (list)
   "The list of robots.
 
 Each robot definition is a plist.  The plist has the following keys:
@@ -137,6 +133,28 @@ Each robot definition is a plist.  The plist has the following keys:
 When the function is evaluated the function `rcirc-robot-send' is
 in scope to send text to the channel that caused the robot
 invocation.")
+
+(defun* rcirc-robots-add-function (&key
+                                   name
+                                   version
+                                   regex
+                                   function)
+  "Add the specified robot to the list."
+  (condition-case err
+      (progn
+        (mapcar
+         (lambda (p)
+           (when (equal (plist-get p :name) name)
+             (error "%s exists" name)))
+         rcirc-robots--list)
+        ;; Install the bot
+        (add-to-list
+         'rcirc-robots--list
+         (list  :name name
+                :version version
+                :regex regex
+                :function function)))
+    (error nil)))
 
 ;;;###autoload
 (defun rcirc-robots--dispatcher (process sender response target text)
@@ -154,14 +172,14 @@ invocation.")
             (apply (plist-get robot :function) matches)))))
 
 ;; Add the hook
-(add-hook
- 'rcirc-print-hooks
- 'rcirc-robots--dispatcher)
+;(remove-hook
+; 'rcirc-print-hooks
+; 'rcirc-robots--dispatcher)
 
 
 ;; More robots
 
-(defun rcirc-robots-maker ()
+(defun rcirc-robots-maker (&args)
   (rcirc-robot-send
    "I am [[https://github.com/nicferrier/rcirc-robots|a robot]]"))
 
@@ -194,27 +212,21 @@ invocation.")
   (rcirc-robot-send
    (ask-doctor text)))
 
+(rcirc-robots-add-function
+ :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
+ :function 'rcirc-robots-time))
 
-(add-to-list
- 'rcirc-robots--list
- (list :name "maker"
-       :version 1
-       :regex "who are you?"
-       :function 'rcirc-robots-maker))
+(rcirc-robots-add-function
+ :name "maker" :version 1 :regex "who are you?"
+ :function 'rcirc-robots-maker)
 
-(add-to-list
- 'rcirc-robots--list
- (list :name "hammertime"
-       :version 1
-       :regex "hammertime[?!]*"
-       :function 'rcirc-robots-hammertime))
+(rcirc-robots-add-function
+ :name "hammertime" :version 1 :regex "hammertime[?!]*"
+ :function 'rcirc-robots-hammertime)
 
-(add-to-list
- 'rcirc-robots--list
- (list :name "insult"
-       :version 1
-       :regex "^insult \\([A-Za-z0-9-]+\\)"
-       :function 'rcirc-robots-insult))
+(rcirc-robots-add-function
+ :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9-]+\\)"
+ :function 'rcirc-robots-insult)
 
 (add-to-list
  'rcirc-robots--list
