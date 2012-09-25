@@ -29,6 +29,7 @@
 
 
 (require 'rcirc)
+(require 'doctor-doc "doctor")
 
 (defun rcirc-text>channel (process channel text)
   "Send the TEXT to the CHANNEL attached to PROCESS.
@@ -177,6 +178,9 @@ invocation.")
              (elt adjectives (random (length adjectives)))
              (elt nouns (random (length nouns)))))))
 
+(defun rcirc-robots-doctor (text)
+  )
+
 
 (add-to-list
  'rcirc-robots--list
@@ -198,6 +202,13 @@ invocation.")
        :version 1
        :regex "^insult \\([A-Za-z0-9-]+\\)"
        :function 'rcirc-robots-insult))
+
+(add-to-list
+ 'rcirc-robots--list
+ (list :name "doctor"
+       :version 1
+       :regex "doctor \\(.*\\)"
+       :function 'rcirc-robots-doctor))
 
 (provide 'rcirc-robots)
 
