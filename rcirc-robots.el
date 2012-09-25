@@ -71,7 +71,19 @@ that caused them to be invoked."
            ("London" . "Europe/London")
            ("Edinburgh" . "Europe/London")
            ("Manchester" . "Europe/London")
-           ("Chicago" . "America/Chicago"))))
+           ("Brazil" . "America/Sao_Paulo")
+           ("Sao Paulo" . "America/Sao_Paulo")
+           ("Sao-Paulo" . "America/Sao_Paulo")
+           ("SaoPaulo" . "America/Sao_Paulo")
+           ("Chicago" . "America/Chicago")
+           ("Los Angeles" . "America/Los_Angeles")
+           ("Los-Angeles" . "America/Los_Angeles")
+           ("San Francisco" . "America/Los_Angeles")
+           ("Chennai" . "Asia/Kolkata")
+           ("Bangalore" . "Asia/Kolkata")
+           ("Pune" . "Asia/Kolkata")
+           ("India" . "Asia/Kolkata")
+           ("Delhi" . "Asia/Kolkata"))))
     (acond
       ((or
         (equal place "?")
@@ -97,7 +109,7 @@ that caused them to be invoked."
   (list
    (list :name "timezone"
          :version 1
-         :regex "time \\([A-Za-\]+\\)"
+         :regex "time \\([A-Za-z\ -]+\\)"
          :function 'rcirc-robots-time))
   "The list of robots.
 
@@ -135,18 +147,15 @@ invocation.")
 
 ;; More robots
 
+(defun rcirc-robots-maker ()
+  (rcirc-robot-send
+   "I am [[https://github.com/nicferrier/rcirc-robots|a robot]]"))
+
 (defun rcirc-robots-hammertime (&rest args)
   (let ((quotes (list
                  "READY THE ENORMOUS TROUSERS!"
                  "YOU CAN'T TOUCH THIS!")))
     (rcirc-robot-send (elt quotes (random (length quotes))))))
-
-(add-to-list
- 'rcirc-robots--list
- (list :name "hammertime"
-       :version 1
-       :regex "hammertime[?!]*"
-       :function 'rcirc-robots-hammertime))
 
 (defun rcirc-robots-insult (text user)
   (let ((adjectives (list
@@ -166,6 +175,21 @@ invocation.")
              user
              (elt adjectives (random (length adjectives)))
              (elt nouns (random (length nouns)))))))
+
+
+(add-to-list
+ 'rcirc-robots--list
+ (list :name "maker"
+       :version 1
+       :regex "who are you?"
+       :function 'rcirc-robots-maker))
+
+(add-to-list
+ 'rcirc-robots--list
+ (list :name "hammertime"
+       :version 1
+       :regex "hammertime[?!]*"
+       :function 'rcirc-robots-hammertime))
 
 (add-to-list
  'rcirc-robots--list
