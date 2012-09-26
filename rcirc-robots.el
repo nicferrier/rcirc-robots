@@ -230,7 +230,9 @@ THUNK in."
          'rcirc-connect
          (rcirc-robots--plist->list robot)))
   ;; Now add the hook
-  (add-hook 'rcirc-print-hook 'rcirc-robots--dispatcher))
+  (add-hook
+   'rcirc-print-hooks
+   'rcirc-robots--dispatcher))
 
 
 ;; More robots
