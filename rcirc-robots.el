@@ -1,4 +1,4 @@
-;;; rcirc-robots.el --- robots based on the rcirc irc client
+;;; rcirc-robots.el --- robots based on rcirc irc -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012  Nic Ferrier
 
@@ -7,7 +7,7 @@
 ;; Version: 0.0.2
 ;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Created: 12th September 2012
-;; Package-Requires: ((kv "0.0.6"))
+;; Package-Requires: ((kv "0.0.7"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,6 +31,15 @@
 
 (require 'rcirc)
 (require 'cl)
+(require 'kv)
+
+
+(defcustom rcirc-robots-conf ()
+  "Define what robots run on what channels."
+  :group 'rcirc ; piggy back for now
+  :type `(alist
+          :key-type string
+          :value-type (repeat string)))
 
 (defun rcirc-text>channel (process channel text)
   "Send the TEXT to the CHANNEL attached to PROCESS.
@@ -106,19 +115,6 @@ that caused them to be invoked."
                  (setenv "TZ" tz)
                (setenv "TZ" nil))))))))))
 
-(defun ask-doctor (text)
-  (with-current-buffer (or
-                        (get-buffer "*doctor*")
-                        (progn
-                          (doctor)
-                          (get-buffer "*doctor*")))
-    (goto-char (point-max))
-    (insert "I'm feeling unwell\n")
-    (doctor-ret-or-read t)
-    (let ((p (point)))
-      (doctor-ret-or-read t)
-      (message (buffer-substring p (point-max))))))
-
 (defvar rcirc-robots--list
   (list)
   "The list of robots.
@@ -156,6 +152,18 @@ invocation.")
                 :function function)))
     (error nil)))
 
+(defun rcirc-robots-environment (process channel thunk)
+  "Eval THUNK with the correct rcirc environment.
+
+This could be used by bot writers, if for example, you have a bot
+that needs to asyncrhonously execute before responding in channel
+it could pass the process and channel to a callback which could
+then use this to establish the correct environment to call the
+THUNK in."
+  (let ((rcirc-robot--process process)
+        (rcirc-robot--channel target))
+    (funcall thunk)))
+
 ;;;###autoload
 (defun rcirc-robots--dispatcher (process sender response target text)
   "Loop through `rcirc-robots--list' attempting to dispatch to robots."
@@ -164,16 +172,27 @@ invocation.")
              (loop for i
                 from 0 to (- (/ (length m) 2) 1)
                 collect (match-string i str)))))
-    (when (equal "erwin"
-                 (with-current-buffer (process-buffer process)
-                   rcirc-nick))
-      (loop for robot in rcirc-robots--list
-         if (string-match (plist-get robot :regex) text)
-         do (let ((rcirc-robot--process process)
-                  (rcirc-robot--channel target)
-                  (matches (match-strings-all text)))
-              (apply (plist-get robot :function) matches))))))
-
+    (let* ((this-nick (with-current-buffer
+                          (process-buffer process)
+                        rcirc-nick))
+           (config (assoc this-nick rcirc-robots-conf)))
+      (when config
+        ;; loop round each robot config mentioned in the conf
+        (loop for robot in
+             (loop for robot-name in (cdr config)
+                collect
+                  (kvplist2get
+                   rcirc-robots--list
+                   :name
+                   robot-name))
+           if (string-match (plist-get robot :regex) text)
+           do (rcirc-robots-environment
+               process
+               target
+               (lambda nil ; the thunk
+                 (apply
+                  (plist-get robot :function)
+                  (match-strings-all text)))))))))
 
 ;; More robots
 
@@ -206,17 +225,37 @@ invocation.")
              (elt adjectives (random (length adjectives)))
              (elt nouns (random (length nouns)))))))
 
-(defun rcirc-robots-doctor (text)
-  (rcirc-robot-send
-   (ask-doctor text)))
+(defun rcirc-robots-doctor (text question)
+  (with-current-buffer (or
+                        (get-buffer "*doctor*")
+                        (progn
+                          (doctor)
+                          (get-buffer "*doctor*")))
+    (goto-char (point-max))
+    (if (and (stringp question)
+             (< (length question) 1))
+        (insert "I'm feeling unwell\n")
+        ;; Else
+        (insert question)
+        (insert "\n"))
+    (doctor-ret-or-read t)
+    (let ((p (point)))
+      (doctor-ret-or-read t)
+      (rcirc-send (buffer-substring p (point-max))))))
+
+;; Robot config
+
+(rcirc-robots-add-function
+ :name "maker" :version 1 :regex "who are you?"
+ :function 'rcirc-robots-maker)
 
 (rcirc-robots-add-function
  :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
  :function 'rcirc-robots-time))
 
 (rcirc-robots-add-function
- :name "maker" :version 1 :regex "who are you?"
- :function 'rcirc-robots-maker)
+ :name "doctor" :version 1 :regex "doctor\\(.*\\)"
+ :function 'rcirc-robots-doctor))
 
 (rcirc-robots-add-function
  :name "hammertime" :version 1 :regex "hammertime[?!]*"
@@ -226,17 +265,6 @@ invocation.")
  :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9-]+\\)"
  :function 'rcirc-robots-insult)
 
-(rcirc-robots-add-function
- :name "doctor"
- :version 1
- :regex "doctor \\(.*\\)"
- :function 'rcirc-robots-doctor)
-
-;; FIXME
-
-;; could we then have some code like:
-
-;; NICK - CHANNEL - list of enabled robots by :name
 
 (provide 'rcirc-robots)
 
