@@ -151,17 +151,15 @@ invocation.")
              (loop for i
                 from 0 to (- (/ (length m) 2) 1)
                 collect (match-string i str)))))
-    (loop for robot in rcirc-robots--list
-       if (string-match (plist-get robot :regex) text)
-       do (let ((rcirc-robot--process process)
-                (rcirc-robot--channel target)
-                (matches (match-strings-all text)))
-            (apply (plist-get robot :function) matches)))))
-
-;; Add the hook
-;(remove-hook
-; 'rcirc-print-hooks
-; 'rcirc-robots--dispatcher)
+    (when (equal "erwin"
+                 (with-current-buffer (process-buffer process)
+                   rcirc-nick))
+      (loop for robot in rcirc-robots--list
+         if (string-match (plist-get robot :regex) text)
+         do (let ((rcirc-robot--process process)
+                  (rcirc-robot--channel target)
+                  (matches (match-strings-all text)))
+              (apply (plist-get robot :function) matches))))))
 
 
 ;; More robots
@@ -210,6 +208,12 @@ invocation.")
 (rcirc-robots-add-function
  :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9-]+\\)"
  :function 'rcirc-robots-insult)
+
+;; FIXME
+
+;; could we then have some code like:
+
+;; NICK - CHANNEL - list of enabled robots by :name
 
 (provide 'rcirc-robots)
 
