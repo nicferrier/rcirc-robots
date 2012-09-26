@@ -4,10 +4,10 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: comm
-;; Version: 0.0.2
+;; Version: 0.0.4
 ;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Created: 12th September 2012
-;; Package-Requires: ((kv "0.0.7"))
+;; Package-Requires: ((kv "0.0.8"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -41,12 +41,28 @@
           :key-type string
           :value-type (repeat string)))
 
+(defcustom rcirc-robots-alist  ()
+  "An alist of robot IRC config.
+
+Exactly the same as `rcirc-server-alist'."
+  :type '(alist :key-type string
+          :value-type (plist :options
+                       ((:nick string)
+                        (:port integer)
+                        (:user-name string)
+                        (:password string)
+                        (:full-name string)
+                        (:channels (repeat string))
+                        (:encryption (choice (const tls)
+                                             (const plain))))))
+  :group 'rcirc)
+
 (defun rcirc-text>channel (process channel text)
   "Send the TEXT to the CHANNEL attached to PROCESS.
 
 This is the building block of automatic responses."
   (with-current-buffer
-      (cdr (assoc target
+      (cdr (assoc channel
                   (with-current-buffer
                       (process-buffer process)
                     rcirc-buffer-alist)))
@@ -138,7 +154,7 @@ invocation.")
   "Add the specified robot to the list."
   (condition-case err
       (progn
-        (mapcar
+        (mapc
          (lambda (p)
            (when (equal (plist-get p :name) name)
              (error "%s exists" name)))
@@ -161,7 +177,7 @@ it could pass the process and channel to a callback which could
 then use this to establish the correct environment to call the
 THUNK in."
   (let ((rcirc-robot--process process)
-        (rcirc-robot--channel target))
+        (rcirc-robot--channel channel))
     (funcall thunk)))
 
 ;;;###autoload
@@ -193,6 +209,29 @@ THUNK in."
                  (apply
                   (plist-get robot :function)
                   (match-strings-all text)))))))))
+
+(defun rcirc-robots--plist->list (plist-server-defn)
+  "Return the server plist in a form useful for `apply'."
+  (list
+   (car plist-server-defn)
+   (plist-get (cdr plist-server-defn) :port)
+   (plist-get (cdr plist-server-defn) :nick)
+   (plist-get (cdr plist-server-defn) :user-name)
+   (plist-get (cdr plist-server-defn) :full-name)
+   (plist-get (cdr plist-server-defn) :channels)
+   (plist-get (cdr plist-server-defn) :password)
+   (plist-get (cdr plist-server-defn) :encryption)))
+
+;;;###autoload
+(defun rcirc-robots--connect ()
+  ;; Connect any robot connection defined
+  (loop for robot in rcirc-robots-alist
+     do (apply
+         'rcirc-connect
+         (rcirc-robots--plist->list robot)))
+  ;; Now add the hook
+  (add-hook 'rcirc-print-hook 'rcirc-robots--dispatcher))
+
 
 ;; More robots
 
@@ -241,7 +280,7 @@ THUNK in."
     (doctor-ret-or-read t)
     (let ((p (point)))
       (doctor-ret-or-read t)
-      (rcirc-send (buffer-substring p (point-max))))))
+      (rcirc-robot-send (buffer-substring p (point-max))))))
 
 ;; Robot config
 
@@ -251,11 +290,11 @@ THUNK in."
 
 (rcirc-robots-add-function
  :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
- :function 'rcirc-robots-time))
+ :function 'rcirc-robots-time)
 
 (rcirc-robots-add-function
  :name "doctor" :version 1 :regex "doctor\\(.*\\)"
- :function 'rcirc-robots-doctor))
+ :function 'rcirc-robots-doctor)
 
 (rcirc-robots-add-function
  :name "hammertime" :version 1 :regex "hammertime[?!]*"
