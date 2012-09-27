@@ -106,19 +106,6 @@ that caused them to be invoked."
                  (setenv "TZ" tz)
                (setenv "TZ" nil))))))))))
 
-(defun ask-doctor (text)
-  (with-current-buffer (or
-                        (get-buffer "*doctor*")
-                        (progn
-                          (doctor)
-                          (get-buffer "*doctor*")))
-    (goto-char (point-max))
-    (insert "I'm feeling unwell\n")
-    (doctor-ret-or-read t)
-    (let ((p (point)))
-      (doctor-ret-or-read t)
-      (message (buffer-substring p (point-max))))))
-
 (defvar rcirc-robots--list
   (list)
   "The list of robots.
@@ -210,7 +197,17 @@ invocation.")
 
 (defun rcirc-robots-doctor (text)
   (rcirc-robot-send
-   (ask-doctor text)))
+   (with-current-buffer (or
+                         (get-buffer "*doctor*")
+                         (progn
+                           (doctor)
+                           (get-buffer "*doctor*")))
+     (goto-char (point-max))
+     (insert text)
+     (doctor-ret-or-read t)
+       (let ((p (point)))
+         (doctor-ret-or-read t)
+         (message (buffer-substring p (point-max)))))))
 
 (rcirc-robots-add-function
  :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
