@@ -228,6 +228,28 @@ THUNK in."
        (rcirc-robot-send
         (format "places you can query for time %s"
                 (kvalist->keys places))))
+      ((assoc (capitalize place) places) ; assigned to 'it'
+       (rcirc-robot-send
+        (format
+         "the time in %s is %s"
+         place
+         (let ((tz (getenv "TZ")))
+           (unwind-protect
+                (progn
+                  (setenv "TZ" (cdr it))
+                  (format-time-string "%H:%M"))
+             (if tz
+                 (setenv "TZ" tz)
+               (setenv "TZ" nil))))))))))
+
+
+    (acond
+      ((or
+        (equal place "?")
+        (equal place "help"))
+       (rcirc-robot-send
+        (format "places you can query for time %s"
+                (kvalist->keys places))))
       ((assoc (capitalize place) places)
        (rcirc-robot-send
         (format
