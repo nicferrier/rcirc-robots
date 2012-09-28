@@ -241,30 +241,98 @@ THUNK in."
   (rcirc-robot-send
    "I am [[https://github.com/nicferrier/rcirc-robots|a robot]]"))
 
+(defun rcirc-robots-time (text place)
+  "Get the time of a place and report it."
+  (let ((places
+         '(("Germany" . "Europe/Berlin")
+           ("Berlin" . "Europe/Berlin")
+           ("Hamburg" . "Europe/Berlin")
+           ("England" . "Europe/London")
+           ("London" . "Europe/London")
+           ("Edinburgh" . "Europe/London")
+           ("Manchester" . "Europe/London")
+           ("Brazil" . "America/Sao_Paulo")
+           ("Sao Paulo" . "America/Sao_Paulo")
+           ("Sao-Paulo" . "America/Sao_Paulo")
+           ("SaoPaulo" . "America/Sao_Paulo")
+           ("Chicago" . "America/Chicago")
+           ("Los Angeles" . "America/Los_Angeles")
+           ("Los-Angeles" . "America/Los_Angeles")
+           ("San Francisco" . "America/Los_Angeles")
+           ("Chennai" . "Asia/Kolkata")
+           ("Bangalore" . "Asia/Kolkata")
+           ("Pune" . "Asia/Kolkata")
+           ("India" . "Asia/Kolkata")
+           ("Delhi" . "Asia/Kolkata")
+           ("Agartala" . "Asia/Kolkata"))))
+    (acond
+      ((or
+        (equal place "?")
+        (equal place "help"))
+       (rcirc-robot-send
+        (format "places you can query for time %s"
+                (kvalist->keys places))))
+      ((assoc (capitalize place) places)
+       (rcirc-robot-send
+        (format
+         "the time in %s is %s"
+         (car it) ; the pair that assoc matched, the car's the place
+         (let ((tz (getenv "TZ")))
+           (unwind-protect
+                (progn
+                  (setenv "TZ" (cdr it))
+                  (format-time-string "%H:%M"))
+             (if tz
+                 (setenv "TZ" tz)
+               (setenv "TZ" nil))))))))))
+
 (defun rcirc-robots-hammertime (&rest args)
   (let ((quotes (list
                  "READY THE ENORMOUS TROUSERS!"
                  "YOU CAN'T TOUCH THIS!")))
     (rcirc-robot-send (elt quotes (random (length quotes))))))
 
+(defcustom rcirc-robots-insult-adjectives-list
+  (list
+   "stinky"
+   "tiny-minded"
+   "pea-brained"
+   "heavily lidded"
+   "muck minded"
+   "flat footed")
+  "List of adjectives used in the insulter."
+  :group 'rcirc
+  :type '(repeat string))
+
+(defcustom rcirc-robots-insult-noun-list
+  (list
+   "bog warbler"
+   "tin pincher"
+   "yeti"
+   "whoo-har")
+  "List of nouns used in the insulter."
+  :group 'rcirc
+  :type '(repeat string))
+
 (defun rcirc-robots-insult (text user)
-  (let ((adjectives (list
-                    "stinky"
-                    "tiny-minded"
-                    "pea-brained"
-                    "heavily lidded"
-                    "muck minded"
-                    "flat footed"))
-        (nouns (list
-                "bog warbler"use-hard-newlines
-                "tin pincher"
-                "yeti"
-                "whoo-har")))
-    (rcirc-robot-send
-     (format "%s is a %s %s"
-             user
-             (elt adjectives (random (length adjectives)))
-             (elt nouns (random (length nouns)))))))
+  (when (string-match "add noun \\(.*\\)" user)
+    (add-to-list
+     'rcirc-robots-insult-noun-list
+     (match-string 1 user)))
+  (when (string-match "add adjective \\(.*\\)" user)
+    (add-to-list
+     'rcirc-robots-insult-adjective-list
+     (match-string 1 user)))
+  (rcirc-robot-send
+   (format
+    "%s is a %s %s"
+    user
+    (elt
+     rcirc-robots-insult-adjectives-list
+     (random (length rcirc-robots-insult-adjectives-list)))
+    (elt
+     rcirc-robots-insult-nouns-list
+     (random (length rcirc-robots-insult-nouns-list))))))
 
 (defun rcirc-robots-doctor (text question)
   (with-current-buffer (or
