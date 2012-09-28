@@ -86,51 +86,6 @@ that caused them to be invoked."
    rcirc-robot--channel
    text))
 
-(defun rcirc-robots-time (text place)
-  "Get the time of a place and report it."
-  (let ((places
-         '(("Germany" . "Europe/Berlin")
-           ("Berlin" . "Europe/Berlin")
-           ("Hamburg" . "Europe/Berlin")
-           ("England" . "Europe/London")
-           ("London" . "Europe/London")
-           ("Edinburgh" . "Europe/London")
-           ("Manchester" . "Europe/London")
-           ("Brazil" . "America/Sao_Paulo")
-           ("Sao Paulo" . "America/Sao_Paulo")
-           ("Sao-Paulo" . "America/Sao_Paulo")
-           ("SaoPaulo" . "America/Sao_Paulo")
-           ("Chicago" . "America/Chicago")
-           ("Los Angeles" . "America/Los_Angeles")
-           ("Los-Angeles" . "America/Los_Angeles")
-           ("San Francisco" . "America/Los_Angeles")
-           ("Chennai" . "Asia/Kolkata")
-           ("Bangalore" . "Asia/Kolkata")
-           ("Pune" . "Asia/Kolkata")
-           ("India" . "Asia/Kolkata")
-           ("Delhi" . "Asia/Kolkata")
-           ("Agartala" . "Asia/Kolkata"))))
-    (acond
-      ((or
-        (equal place "?")
-        (equal place "help"))
-       (rcirc-robot-send
-        (format "places you can query for time %s"
-                (kvalist->keys places))))
-      ((assoc (capitalize place) places)
-       (rcirc-robot-send
-        (format
-         "the time in %s is %s"
-         (car it) ; the pair that assoc matched, the car's the place
-         (let ((tz (getenv "TZ")))
-           (unwind-protect
-                (progn
-                  (setenv "TZ" (cdr it))
-                  (format-time-string "%H:%M"))
-             (if tz
-                 (setenv "TZ" tz)
-               (setenv "TZ" nil))))))))))
-
 (defvar rcirc-robots--list
   (list)
   "The list of robots.
