@@ -4,7 +4,7 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: comm
-;; Version: 0.0.4
+;; Version: 0.0.5
 ;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Created: 12th September 2012
 ;; Package-Requires: ((kv "0.0.8"))
@@ -199,7 +199,8 @@ THUNK in."
 (defun rcirc-robots-time (text place)
   "Get the time of a place and report it."
   (let ((places
-         '(("Germany" . "Europe/Berlin")
+         '(("UTC" . "UTC")
+           ("Germany" . "Europe/Berlin")
            ("Berlin" . "Europe/Berlin")
            ("Hamburg" . "Europe/Berlin")
            ("England" . "Europe/London")
@@ -259,7 +260,7 @@ THUNK in."
   :group 'rcirc
   :type '(repeat string))
 
-(defcustom rcirc-robots-insult-noun-list
+(defcustom rcirc-robots-insult-nouns-list
   (list
    "bog warbler"
    "tin pincher"
@@ -270,24 +271,32 @@ THUNK in."
   :type '(repeat string))
 
 (defun rcirc-robots-insult (text user)
-  (when (string-match "add noun \\(.*\\)" user)
+  (message "insult string is: %s" user)
+  (cond
+   ((string-match "add noun \\(.*\\)" user)
     (add-to-list
-     'rcirc-robots-insult-noun-list
+     'rcirc-robots-insult-nouns-list
      (match-string 1 user)))
-  (when (string-match "add adjective \\(.*\\)" user)
+   ((string-match "add adjective \\(.*\\)" user)
     (add-to-list
-     'rcirc-robots-insult-adjective-list
+     'rcirc-robots-insult-adjectives-list
      (match-string 1 user)))
-  (rcirc-robot-send
-   (format
-    "%s is a %s %s"
-    user
-    (elt
-     rcirc-robots-insult-adjectives-list
-     (random (length rcirc-robots-insult-adjectives-list)))
-    (elt
-     rcirc-robots-insult-nouns-list
-     (random (length rcirc-robots-insult-nouns-list))))))
+   ((string-match "list nouns" user)
+    (rcirc-robot-send (format "%s" rcirc-robots-insult-nouns-list)))
+   ((string-match "list adjectives" user)
+    (rcirc-robot-send (format "%s" rcirc-robots-insult-adjectives-list)))
+   (t
+    (message "no special instruction")
+    (rcirc-robot-send
+     (format
+      "%s is a %s %s"
+      user
+      (elt
+       rcirc-robots-insult-adjectives-list
+       (random (length rcirc-robots-insult-adjectives-list)))
+      (elt
+       rcirc-robots-insult-nouns-list
+       (random (length rcirc-robots-insult-nouns-list))))))))
 
 (defun rcirc-robots-doctor (text question)
   (with-current-buffer (or
