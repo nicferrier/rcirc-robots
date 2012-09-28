@@ -239,30 +239,7 @@ THUNK in."
                   (setenv "TZ" (cdr it))
                   (format-time-string "%H:%M"))
              (if tz
-                 (setenv "TZ" tz)
-               (setenv "TZ" nil))))))))))
-
-
-    (acond
-      ((or
-        (equal place "?")
-        (equal place "help"))
-       (rcirc-robot-send
-        (format "places you can query for time %s"
-                (kvalist->keys places))))
-      ((assoc (capitalize place) places)
-       (rcirc-robot-send
-        (format
-         "the time in %s is %s"
-         (car it) ; the pair that assoc matched, the car's the place
-         (let ((tz (getenv "TZ")))
-           (unwind-protect
-                (progn
-                  (setenv "TZ" (cdr it))
-                  (format-time-string "%H:%M"))
-             (if tz
-                 (setenv "TZ" tz)
-               (setenv "TZ" nil))))))))))
+                 (setenv "TZ" tz))))))))))
 
 (defun rcirc-robots-hammertime (&rest args)
   (let ((quotes (list
