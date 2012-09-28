@@ -89,7 +89,8 @@ that caused them to be invoked."
 (defun rcirc-robots-time (text place)
   "Get the time of a place and report it."
   (let ((places
-         '(("Germany" . "Europe/Berlin")
+         '(("UTC" . "UTC")
+           ("Germany" . "Europe/Berlin")
            ("Berlin" . "Europe/Berlin")
            ("Hamburg" . "Europe/Berlin")
            ("England" . "Europe/London")
