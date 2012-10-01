@@ -274,30 +274,37 @@ THUNK in."
 (defun rcirc-robots-insult (text user)
   (message "insult string is: %s" user)
   (cond
-   ((string-match "add noun \\(.*\\)" user)
-    (add-to-list
-     'rcirc-robots-insult-nouns-list
-     (match-string 1 user)))
-   ((string-match "add adjective \\(.*\\)" user)
-    (add-to-list
-     'rcirc-robots-insult-adjectives-list
-     (match-string 1 user)))
-   ((string-match "list nouns" user)
-    (rcirc-robot-send (format "%s" rcirc-robots-insult-nouns-list)))
-   ((string-match "list adjectives" user)
-    (rcirc-robot-send (format "%s" rcirc-robots-insult-adjectives-list)))
-   (t
-    (message "no special instruction")
-    (rcirc-robot-send
-     (format
-      "%s is a %s %s"
-      user
-      (elt
-       rcirc-robots-insult-adjectives-list
-       (random (length rcirc-robots-insult-adjectives-list)))
-      (elt
-       rcirc-robots-insult-nouns-list
-       (random (length rcirc-robots-insult-nouns-list))))))))
+    ((string-match "help\\( .*\\)*" user)
+     (rcirc-robot-send
+      (concat
+       "you can insult a user: insult <nick>, "
+       "or add a noun or adjective: insult add noun <noun>, "
+       "insult add adjective <adjective> "
+       "or list nouns or adjectives: insult list nouns")))
+    ((string-match "add noun \\(.*\\)" user)
+     (add-to-list
+      'rcirc-robots-insult-nouns-list
+      (match-string 1 user)))
+    ((string-match "add adjective \\(.*\\)" user)
+     (add-to-list
+      'rcirc-robots-insult-adjectives-list
+      (match-string 1 user)))
+    ((string-match "list nouns" user)
+     (rcirc-robot-send (format "%s" rcirc-robots-insult-nouns-list)))
+    ((string-match "list adjectives" user)
+     (rcirc-robot-send (format "%s" rcirc-robots-insult-adjectives-list)))
+    (t
+     (message "no special instruction")
+     (rcirc-robot-send
+      (format
+       "%s is a %s %s"
+       user
+       (elt
+        rcirc-robots-insult-adjectives-list
+        (random (length rcirc-robots-insult-adjectives-list)))
+       (elt
+        rcirc-robots-insult-nouns-list
+        (random (length rcirc-robots-insult-nouns-list))))))))
 
 (defun rcirc-robots-doctor (text question)
   (with-current-buffer (or
