@@ -194,7 +194,9 @@ THUNK in."
 
 (defun rcirc-robots-maker (&args)
   (rcirc-robot-send
-   "I am [[https://github.com/nicferrier/rcirc-robots|a robot]]"))
+   (concat
+    "I am a robot, you can check my source here: "
+    "https://github.com/nicferrier/rcirc-robots")))
 
 (defun rcirc-robots-time (text place)
   "Get the time of a place and report it."
