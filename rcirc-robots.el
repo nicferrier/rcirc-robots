@@ -203,10 +203,9 @@ invocation.")
                   (lambda (x)
                     (goto-char (point-min))
                     (search-forward-regexp "\{.*")
-                    (setq word-definition (gethash "definition"
+                    (rcirc-robot-send (gethash "definition"
                                                    (let ((json-object-type 'hash-table))
-                                                     (json-read-from-string (match-string-no-properties 0)))))))
-    word-definition))
+                                                     (json-read-from-string (match-string-no-properties 0)))))))))
 
 (rcirc-robots-add-function
  :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
