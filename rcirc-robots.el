@@ -197,10 +197,9 @@ invocation.")
              (elt adjectives (random (length adjectives)))
              (elt nouns (random (length nouns)))))))
 
-(defun rcirc-robots-ud-define (text phrase)
+(defun rcirc-robots-ud-define (text word)
   (let ((url-request-method "GET"))
-    (url-retrieve (format "http://urbanscraper.herokuapp.com/define/%s.json"
-                          (escape-spaces phrase))
+    (url-retrieve (format "http://urbanscraper.herokuapp.com/define/%s.json" word)
                   (lambda (x)
                     (goto-char (point-min))
                     (search-forward-regexp "\{.*")
@@ -209,14 +208,9 @@ invocation.")
                                          (json-read-from-string (match-string-no-properties 0)))))))))
 
 (defun get-definition-and-url (hash)
-  ;; Get definition and URL from JSON response
   (let ((definition (gethash "definition" hash))
         (url (gethash "url" hash)))
     (format "Definition: %s. URL: %s" definition url)))
-
-(defun escape-spaces (text)
-  ;; Escape spaces for HTTP requests
-  (replace-regexp-in-string "\\( +\\)" "%%20" text))
 
 (rcirc-robots-add-function
  :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
@@ -235,7 +229,7 @@ invocation.")
  :function 'rcirc-robots-insult)
 
 (rcirc-robots-add-function
- :name "define" :version 1 :regex "^define \\([A-Za-z0-9\ -]+\\)"
+ :name "define" :version 1 :regex "^define \\([A-Za-z0-9-]+\\)"
  :function 'rcirc-robots-ud-define)
 
 (provide 'rcirc-robots)
