@@ -200,17 +200,20 @@ invocation.")
 (defun rcirc-robots-ud-define (text word)
   (let ((url-request-method "GET"))
     (url-retrieve (format "http://urbanscraper.herokuapp.com/define/%s.json" word)
-                  (lambda (x)
+                  (lambda (x args)
                     (goto-char (point-min))
                     (search-forward-regexp "\{.*")
-                    (rcirc-robot-send (get-definition-and-url
-                                       (let ((json-object-type 'hash-table))
-                                         (json-read-from-string (match-string-no-properties 0)))))))))
+                    (destructuring-bind (rcirc-robot--process rcirc-robot--channel) args
+                      (rcirc-robot-send (rcirc-robots-ud-define-get-details
+                                         (let ((json-object-type 'hash-table))
+                                           (json-read-from-string (match-string-no-properties 0)))))))
+                  (list rcirc-robot--process rcirc-robot--channel))))
 
-(defun get-definition-and-url (hash)
+(defun rcirc-robots-ud-define-get-details (hash)
   (let ((definition (gethash "definition" hash))
-        (url (gethash "url" hash)))
-    (format "Definition: %s. URL: %s" definition url)))
+        (url (gethash "url" hash))
+        (word (gethash "word" hash)))
+    (format "%s - Definition: %s. URL: %s" word definition url)))
 
 (rcirc-robots-add-function
  :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
