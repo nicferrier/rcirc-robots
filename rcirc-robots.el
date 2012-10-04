@@ -4,7 +4,7 @@
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Keywords: comm
-;; Version: 0.0.5
+;; Version: 0.0.6
 ;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Created: 12th September 2012
 ;; Package-Requires: ((kv "0.0.8"))
