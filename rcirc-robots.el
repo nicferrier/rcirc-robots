@@ -200,7 +200,7 @@ invocation.")
 (defun rcirc-robots-ud-define (text word)
   (let ((url-request-method "GET"))
     (url-retrieve (format "http://urbanscraper.herokuapp.com/define/%s.json" word)
-                  (lambda (x args)
+                  (lambda (x &rest args)
                     (goto-char (point-min))
                     (search-forward-regexp "\{.*")
                     (destructuring-bind (rcirc-robot--process rcirc-robot--channel) args
