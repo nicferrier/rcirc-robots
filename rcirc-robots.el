@@ -334,6 +334,26 @@ THUNK in."
       (doctor-ret-or-read t)
       (rcirc-robot-send (buffer-substring p (point-max))))))
 
+(defun rcirc-robots-ud-define (text word)
+  (let ((url-request-method "GET"))
+    (url-retrieve
+     (format "http://urbanscraper.herokuapp.com/define/%s.json" word)
+     (lambda (x &rest args)
+       (goto-char (point-min))
+       (search-forward-regexp "\{.*")
+       (destructuring-bind (rcirc-robot--process rcirc-robot--channel) args
+         (rcirc-robot-send (rcirc-robots-ud-define-get-details
+                            (let ((json-object-type 'hash-table))
+                              (json-read-from-string
+                               (match-string-no-properties 0)))))))
+     (list rcirc-robot--process rcirc-robot--channel))))
+
+(defun rcirc-robots-ud-define-get-details (hash)
+  (let ((definition (gethash "definition" hash))
+        (url (gethash "url" hash))
+        (word (gethash "word" hash)))
+    (format "%s - Definition: %s. URL: %s" word definition url)))
+
 ;; Robot config
 
 (rcirc-robots-add-function
@@ -361,6 +381,10 @@ THUNK in."
 (rcirc-robots-add-function
  :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9-]+\\)"
  :function 'rcirc-robots-insult)
+
+(rcirc-robots-add-function
+ :name "definebot" :version 1 :regex "^define \\([A-Za-z0-9-]+\\)"
+ :function 'rcirc-robots-ud-define)
 
 
 (provide 'rcirc-robots)
