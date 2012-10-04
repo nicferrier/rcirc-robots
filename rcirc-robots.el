@@ -105,6 +105,7 @@ invocation.")
                                    name
                                    version
                                    regex
+                                   (type :text)
                                    function)
   "Add the specified robot to the list."
   (condition-case err
@@ -146,9 +147,10 @@ THUNK in."
     (let* ((this-nick (with-current-buffer
                           (process-buffer process)
                         rcirc-nick))
+           ;; Is this Nick a registered robot nick?
            (config (assoc this-nick rcirc-robots-conf)))
       (when config
-        ;; loop round each robot config mentioned in the conf
+        ;; loop round each robot function config mentioned in the conf
         (loop for robot in
              (loop for robot-name in (cdr config)
                 collect
@@ -156,7 +158,12 @@ THUNK in."
                    rcirc-robots--list
                    :name
                    robot-name))
-           if (string-match (plist-get robot :regex) text)
+           if (string-match
+               (plist-get robot :regex)
+               (case (plist-get robot :type)
+                 (:command response)
+                 (:text text)
+                 (t text)))
            do (rcirc-robots-environment
                process
                target
@@ -197,6 +204,9 @@ THUNK in."
    (concat
     "I am a robot, you can check my source here: "
     "https://github.com/nicferrier/rcirc-robots")))
+
+(defun rcirc-robots-history (text)
+  (message "rcirc-robots-history %s" text))
 
 (defun rcirc-robots-time (text place)
   "Get the time of a place and report it."
@@ -329,6 +339,12 @@ THUNK in."
 (rcirc-robots-add-function
  :name "maker" :version 1 :regex "who are you?"
  :function 'rcirc-robots-maker)
+
+(rcirc-robots-add-function
+ :name "history" :version 1
+ :type :command
+ :regex "^\\(QUIT\\|JOIN\\)$"
+ :function 'rcirc-robots-history)
 
 (rcirc-robots-add-function
  :name "timezone" :version 1 :regex "time \\([A-Za-z\ -]+\\)"
