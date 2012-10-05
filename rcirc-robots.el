@@ -340,15 +340,28 @@ THUNK in."
      (format "http://urbanscraper.herokuapp.com/define/%s.json" word)
      (lambda (x &rest args)
        (goto-char (point-min))
-       (search-forward-regexp "\{.*")
-       (destructuring-bind (rcirc-robot--process rcirc-robot--channel) args
-         (rcirc-robot-send (rcirc-robots-ud-define-get-details
-                            (let ((json-object-type 'hash-table))
-                              (json-read-from-string
-                               (replace-regexp-in-string "\\\\r"
-                                                         " "
-                                                         (match-string-no-properties 0))))))))
-     (list rcirc-robot--process rcirc-robot--channel))))
+       (search-forward-regexp "\\HTTP\/[0-9]\.[0-9] \\([0-9]+\\)")
+       (let ((status (match-string-no-properties 1)))
+         (destructuring-bind (rcirc-robot--process rcirc-robot--channel word) args
+           (cond ((equal status "200")
+                  (goto-char (point-min))
+                  (search-forward-regexp "\{.*")
+                  (rcirc-robot-send (rcirc-robots-ud-define-get-details
+                                     (let ((json-object-type 'hash-table))
+                                       (json-read-from-string
+                                        (replace-regexp-in-string
+                                         "\\\\r"
+                                         " "
+                                         (match-string-no-properties 0)))))))
+                 ((equal status "404")
+                  (rcirc-robot-send "Well, http://urbanscraper.herokuapp.com is 404ing!"))
+                 ((equal status "500")
+                  (rcirc-robot-send
+                   (format  "I refuse to define \'%s\'. http://urbanscraper.herokuapp.com is 500ing!" word)))
+                 (t
+                  (rcirc-robot-send
+                   (format "Unknown error trying to define \'%s\'. Status is %s" word status)))))))
+     (list rcirc-robot--process rcirc-robot--channel word))))
 
 (defun rcirc-robots-ud-define-get-details (hash)
   (let ((definition (gethash "definition" hash))
