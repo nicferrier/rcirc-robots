@@ -345,7 +345,9 @@ THUNK in."
          (rcirc-robot-send (rcirc-robots-ud-define-get-details
                             (let ((json-object-type 'hash-table))
                               (json-read-from-string
-                               (match-string-no-properties 0)))))))
+                               (replace-regexp-in-string "\\\\r"
+                                                         " "
+                                                         (match-string-no-properties 0))))))))
      (list rcirc-robot--process rcirc-robot--channel))))
 
 (defun rcirc-robots-ud-define-get-details (hash)
