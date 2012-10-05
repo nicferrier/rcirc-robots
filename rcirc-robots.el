@@ -360,7 +360,7 @@ THUNK in."
                    (format  "I refuse to define \'%s\'. http://urbanscraper.herokuapp.com is 500ing!" word)))
                  (t
                   (rcirc-robot-send
-                   (format "Unnown error trying to define \'%s'. Status is %s" word status)))))))
+                   (format "Unknown error trying to define \'%s\'. Status is %s" word status)))))))
      (list rcirc-robot--process rcirc-robot--channel word))))
 
 (defun rcirc-robots-ud-define-get-details (hash)
