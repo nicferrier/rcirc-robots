@@ -158,12 +158,13 @@ THUNK in."
                    rcirc-robots--list
                    :name
                    robot-name))
-           if (string-match
-               (plist-get robot :regex)
-               (case (plist-get robot :type)
-                 (:command response)
-                 (:text text)
-                 (t text)))
+           if (let ((re (plist-get robot :regex)))
+                (string-match
+                 re
+                 (case (plist-get robot :type)
+                   (:command response)
+                   (:text text)
+                   (t text))))
            do (rcirc-robots-environment
                process
                target
