@@ -210,8 +210,6 @@ THUNK in."
   (message "rcirc-robots-history %s" text))
 
 
-
-
 (defun rcirc-robots-time (text place)
   "Get the time of a place and report it."
   (let ((places
