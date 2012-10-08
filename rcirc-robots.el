@@ -209,10 +209,18 @@ THUNK in."
 (defun rcirc-robots-history (text)
   (message "rcirc-robots-history %s" text))
 
+
+
+
 (defun rcirc-robots-time (text place)
   "Get the time of a place and report it."
   (let ((places
          '(("UTC" . "UTC")
+           ("Australia" . "Australia/Sydney")
+           ("Melbourne" . "Australia/Melbourne")
+           ("Sydney" . "Australia/Sydney")
+           ("Brisbane" . "Australia/Brisbane")
+           ("Perth" . "Australia/West")
            ("Germany" . "Europe/Berlin")
            ("Berlin" . "Europe/Berlin")
            ("Hamburg" . "Europe/Berlin")
@@ -241,7 +249,8 @@ THUNK in."
        (rcirc-robot-send
         (format "places you can query for time %s"
                 (kvalist->keys places))))
-      ((assoc (capitalize place) places) ; assigned to 'it'
+      ((or (assoc (capitalize place) places)
+           (assoc (upcase place) places)) ; assigned to 'it'
        (rcirc-robot-send
         (format
          "the time in %s is %s"
