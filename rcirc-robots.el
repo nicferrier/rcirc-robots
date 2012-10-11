@@ -398,7 +398,7 @@ THUNK in."
  :function 'rcirc-robots-time)
 
 (rcirc-robots-add-function
- :name "doctor" :version 1 :regex "doctor\\(.*\\)"
+ :name "doctor" :version 1 :regex "^doctor\\(.*\\)"
  :function 'rcirc-robots-doctor)
 
 (rcirc-robots-add-function
