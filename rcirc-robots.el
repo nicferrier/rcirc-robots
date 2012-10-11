@@ -340,8 +340,7 @@ THUNK in."
              (< (length question) 1))
         (insert "I'm feeling unwell\n")
         ;; Else
-        (insert question)
-        (insert "\n"))
+        (insert question))
     (doctor-ret-or-read t)
     (let ((p (point)))
       (doctor-ret-or-read t)
