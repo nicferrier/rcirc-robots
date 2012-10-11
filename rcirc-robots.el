@@ -324,6 +324,11 @@ THUNK in."
         rcirc-robots-insult-nouns-list
         (random (length rcirc-robots-insult-nouns-list))))))))
 
+(defun remove-newlines (str)
+  (while (string-match "\n" str)
+    (setq str (replace-match "" t t str)))
+  str)
+
 (defun rcirc-robots-doctor (text question)
   (with-current-buffer (or
                         (get-buffer "*doctor*")
@@ -340,7 +345,7 @@ THUNK in."
     (doctor-ret-or-read t)
     (let ((p (point)))
       (doctor-ret-or-read t)
-      (rcirc-robot-send (buffer-substring p (point-max))))))
+      (rcirc-robot-send (remove-newlines (buffer-substring p (point-max)))))))
 
 (defun rcirc-robots-ud-define (text word)
   (let ((url-request-method "GET"))
