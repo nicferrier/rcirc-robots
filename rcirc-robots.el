@@ -402,7 +402,7 @@ THUNK in."
  :function 'rcirc-robots-hammertime)
 
 (rcirc-robots-add-function
- :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9-]+\\)"
+ :name "insult" :version 1 :regex "^insult \\([A-Za-z0-9 -]+\\)"
  :function 'rcirc-robots-insult)
 
 (rcirc-robots-add-function
