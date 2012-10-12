@@ -7,7 +7,7 @@
 ;; Version: 0.0.6
 ;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
 ;; Created: 12th September 2012
-;; Package-Requires: ((kv "0.0.8"))
+;; Package-Requires: ((kv "0.0.8")(anaphora "0.0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,7 +32,8 @@
 (require 'rcirc)
 (require 'cl)
 (require 'kv)
-
+(require 'anaphora)
+(require 'json)
 
 (defcustom rcirc-robots-conf ()
   "Define what robots run on what channels."
