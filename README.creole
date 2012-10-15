@@ -8,3 +8,19 @@ I hope that I can provide a simple and easy bot hosting environment
 with this.
 
 But this is a simple start.
+
+== Example bootstrap ==
+
+{{{
+(defun erwin-boot ()                                                                                                                                  │
+  (require 'rcirc-robots)                                                                                                                             │
+  (setq rcirc-robots-alist '(("irc.server.com"                                                                                                            │
+                              :nick "erwin"                                                                                                           │
+                              :port 6667                                                                                                              │
+                              :user-name "nferrier"                                                                                                 │
+                              :password "password"                                                                                                      │
+                              :full-name "Erwin Robot"                                                                                                │
+                              :channels ("#assimov")                                                                                             │
+                              :encryption nil)))                                                                                                      │
+  (rcirc-robots--connect))                                                                                                                            │
+}}}
